@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AuditLogEntityType,
+  CORRELATION_ID_METADATA_KEY,
   EventRecordRequest,
   fromProtoTimestamp,
 } from '@app/contracts';
@@ -8,7 +9,7 @@ import { AuditLogCreateData, AuditRepository } from './audit.repository';
 import { Metadata, status } from '@grpc/grpc-js';
 import { RpcException } from '@nestjs/microservices';
 import { isUUID } from 'class-validator';
-import type { FindAuditLogsRequestDto } from './models/dto/find-audit-logs.request.dto';
+import type { FindAuditLogsRequestDto } from './dto/find-audit-logs.request.dto';
 
 @Injectable()
 export class AuditService {
@@ -18,7 +19,7 @@ export class AuditService {
     return this.auditRepository.findAll(dto);
   }
   public async create(dto: EventRecordRequest, metadata: Metadata) {
-    const [requestId] = metadata.get('x-correlation-id');
+    const [requestId] = metadata.get(CORRELATION_ID_METADATA_KEY);
 
     if (typeof requestId !== 'string' || !isUUID(requestId)) {
       throw new RpcException({

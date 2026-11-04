@@ -10,7 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { IS_PUBLIC_KEY } from '../../../../libs/decorators/public.decorator';
 
 @Injectable()
-export class XApiKeyGurad implements CanActivate {
+export class XApiKeyGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly configService: ConfigService,

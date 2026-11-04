@@ -9,10 +9,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UserCreateRequestDto } from './models/user/dto/user-create.request.dto';
-import { FindAllRequestDto } from './models/user/dto/find-all.request.dto';
-import { PatchRequestDto } from './models/user/dto/update.request.dto';
-import { CorrelationId } from '../../../libs/decorators/correlation-id.decorator';
+import { UserCreateRequestDto } from './dto/user-create.request.dto';
+import { FindAllRequestDto } from './dto/find-all.request.dto';
+import { PatchRequestDto } from './dto/update.request.dto';
+import { CorrelationId } from '../../../../libs/decorators/correlation-id.decorator';
 
 @Controller('users')
 export class UserController {

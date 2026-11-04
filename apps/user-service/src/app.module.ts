@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { AuditController } from './audit.controller';
-import { AuditService } from './audit.service';
-import { AuditRepository } from './audit.repository';
-import { SequelizeModule } from '@nestjs/sequelize';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuditLog } from './models/audit-log.model';
+import { APP_GUARD } from '@nestjs/core';
+import { SequelizeModule } from '@nestjs/sequelize';
+import { XApiKeyGuard } from './auth/x-api-key.guard';
+import { HealthModule } from './health/health.module';
+import { User } from './users/models/user.model';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -22,13 +23,13 @@ import { AuditLog } from './models/audit-log.model';
         synchronize: false,
         retryAttempts: 3,
         retryDelay: 2000,
-        models: [AuditLog],
+        models: [User],
       }),
       inject: [ConfigService],
     }),
-    SequelizeModule.forFeature([AuditLog]),
+    UsersModule,
+    HealthModule,
   ],
-  controllers: [AuditController],
-  providers: [AuditService, AuditRepository],
+  providers: [{ provide: APP_GUARD, useClass: XApiKeyGuard }],
 })
-export class AuditModule {}
+export class AppModule {}

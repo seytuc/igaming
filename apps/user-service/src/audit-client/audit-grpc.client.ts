@@ -5,22 +5,31 @@ import { randomUUID } from 'node:crypto';
 import { firstValueFrom, timeout } from 'rxjs';
 import {
   AuditLogEntityType,
+  AUDIT_SERVICE_NAME,
+  CORRELATION_ID_METADATA_KEY,
   toProtoTimestamp,
   type AuditLogAction,
   type AuditServiceClient,
   type EventRecordRequest,
 } from '@app/contracts';
 
+export const AUDIT_CLIENT_TOKEN = 'AUDIT_PACKAGE';
+
 @Injectable()
-export class AuditPublisher {
-  private readonly logger = new Logger(AuditPublisher.name);
+export class AuditGrpcClient {
+  private readonly logger = new Logger(AuditGrpcClient.name);
   private readonly auditClient: AuditServiceClient;
 
-  constructor(@Inject('AUDIT_PACKAGE') client: ClientGrpc) {
-    this.auditClient = client.getService<AuditServiceClient>('AuditService');
+  constructor(@Inject(AUDIT_CLIENT_TOKEN) client: ClientGrpc) {
+    this.auditClient =
+      client.getService<AuditServiceClient>(AUDIT_SERVICE_NAME);
   }
 
-  public async publish(
+  public async ping(): Promise<void> {
+    await firstValueFrom(this.auditClient.ping({}).pipe(timeout(500)));
+  }
+
+  public async recordEvent(
     entityType: AuditLogEntityType,
     action: AuditLogAction,
     entityId: string,
@@ -35,7 +44,7 @@ export class AuditPublisher {
     };
 
     const metadata = new Metadata();
-    metadata.set('x-correlation-id', requestId);
+    metadata.set(CORRELATION_ID_METADATA_KEY, requestId);
 
     try {
       await firstValueFrom(

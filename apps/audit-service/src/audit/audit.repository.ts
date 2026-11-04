@@ -2,7 +2,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { AuditLog } from './models/audit-log.model';
 import { RpcException } from '@nestjs/microservices';
 import { Op, type WhereOperators } from 'sequelize';
-import type { FindAuditLogsRequestDto } from './models/dto/find-audit-logs.request.dto';
+import type { FindAuditLogsRequestDto } from './dto/find-audit-logs.request.dto';
 
 export type AuditLogCreateData = Pick<
   AuditLog,

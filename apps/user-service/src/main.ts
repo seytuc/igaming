@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { UserModule } from './user.module';
+import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import {
   GrpcOptions,
@@ -10,7 +10,7 @@ import { join } from 'path';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(UserModule);
+  const app = await NestFactory.create(AppModule);
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   const config = app.get(ConfigService);

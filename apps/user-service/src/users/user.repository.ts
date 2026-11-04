@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { User } from './models/user/user.model';
-import { UserCreateRequestDto } from './models/user/dto/user-create.request.dto';
-import { FindAllRequestDto } from './models/user/dto/find-all.request.dto';
+import { User } from './models/user.model';
+import { UserCreateRequestDto } from './dto/user-create.request.dto';
+import { FindAllRequestDto } from './dto/find-all.request.dto';
 import { Op, type WhereOperators } from 'sequelize';
-import { PatchRequestDto } from './models/user/dto/update.request.dto';
+import { PatchRequestDto } from './dto/update.request.dto';
 
 @Injectable()
 export class UserRepository {
@@ -14,9 +14,9 @@ export class UserRepository {
     return this.userModel.create({ email, name });
   }
 
-  public findOne(email: string) {
+  public findOne(email: string, excludeId?: string) {
     return this.userModel.findOne({
-      where: { email },
+      where: excludeId ? { email, id: { [Op.ne]: excludeId } } : { email },
       paranoid: false,
     });
   }

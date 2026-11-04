@@ -1,30 +1,24 @@
 import {
   Controller,
   Get,
-  Inject,
   ServiceUnavailableException,
   UseGuards,
 } from '@nestjs/common';
-import type { ClientGrpc } from '@nestjs/microservices';
 import { InjectConnection } from '@nestjs/sequelize';
-import type { AuditServiceClient } from '@app/contracts';
 import { defer, firstValueFrom, timeout } from 'rxjs';
 import { Sequelize } from 'sequelize-typescript';
-import { Public } from '../../../libs/decorators/public.decorator';
+import { Public } from '../../../../libs/decorators/public.decorator';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { AuditGrpcClient } from '../audit-client/audit-grpc.client';
 
 @UseGuards(ThrottlerGuard)
 @Public()
 @Controller('health')
 export class HealthController {
-  private readonly auditClient: AuditServiceClient;
-
   constructor(
     @InjectConnection() private readonly sequelize: Sequelize,
-    @Inject('AUDIT_PACKAGE') client: ClientGrpc,
-  ) {
-    this.auditClient = client.getService<AuditServiceClient>('AuditService');
-  }
+    private readonly auditClient: AuditGrpcClient,
+  ) {}
 
   @Get('live')
   public live() {
@@ -38,9 +32,7 @@ export class HealthController {
         defer(() => this.sequelize.authenticate()).pipe(timeout(1000)),
       );
 
-      const auditCheck = firstValueFrom(
-        this.auditClient.ping({}).pipe(timeout(500)),
-      );
+      const auditCheck = this.auditClient.ping();
 
       await Promise.all([databaseCheck, auditCheck]);
 

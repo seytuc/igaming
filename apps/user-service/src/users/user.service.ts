@@ -1,37 +1,28 @@
-import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
-import { UserCreateRequestDto } from './models/user/dto/user-create.request.dto';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { UserCreateRequestDto } from './dto/user-create.request.dto';
 import { UserRepository } from './user.repository';
-import { FindAllRequestDto } from './models/user/dto/find-all.request.dto';
-import { PatchRequestDto } from './models/user/dto/update.request.dto';
-import type { ClientGrpc } from '@nestjs/microservices';
-import {
-  AuditLogAction,
-  AuditLogEntityType,
-  AuditServiceClient,
-} from '@app/contracts';
-import { AuditPublisher } from './audit.publisher';
+import { FindAllRequestDto } from './dto/find-all.request.dto';
+import { PatchRequestDto } from './dto/update.request.dto';
+import { AuditLogAction, AuditLogEntityType } from '@app/contracts';
+import { AuditGrpcClient } from '../audit-client/audit-grpc.client';
+
+const EMAIL_ALREADY_REGISTERED = 'Email is already registered';
 
 @Injectable()
 export class UserService {
-  private auditClient: AuditServiceClient;
-  private logger: Logger;
   constructor(
     private readonly appRepository: UserRepository,
-    private readonly auditPublisher: AuditPublisher,
-    @Inject('AUDIT_PACKAGE') private readonly client: ClientGrpc,
-  ) {
-    this.auditClient = client.getService<AuditServiceClient>('AuditService');
-    this.logger = new Logger(UserService.name);
-  }
+    private readonly auditClient: AuditGrpcClient,
+  ) {}
   public async create(dto: UserCreateRequestDto, requestId: string) {
     const existingUser = await this.appRepository.findOne(dto.email);
     if (existingUser) {
-      throw new ConflictException('Email is already exist');
+      throw new ConflictException(EMAIL_ALREADY_REGISTERED);
     }
 
     const user = await this.appRepository.create(dto);
 
-    await this.auditPublisher.publish(
+    await this.auditClient.recordEvent(
       AuditLogEntityType.AUDIT_LOG_ENTITY_TYPE_USER,
       AuditLogAction.AUDIT_LOG_ACTION_USER_CREATED,
       user.id,
@@ -43,10 +34,17 @@ export class UserService {
     return this.appRepository.findAll(dto);
   }
   public async patch(id: string, dto: PatchRequestDto, requestId: string) {
+    if (dto.email) {
+      const existingUser = await this.appRepository.findOne(dto.email, id);
+      if (existingUser) {
+        throw new ConflictException(EMAIL_ALREADY_REGISTERED);
+      }
+    }
+
     const affectedCount = await this.appRepository.patch(id, dto);
     if (affectedCount[0] === 0) return affectedCount;
 
-    await this.auditPublisher.publish(
+    await this.auditClient.recordEvent(
       AuditLogEntityType.AUDIT_LOG_ENTITY_TYPE_USER,
       AuditLogAction.AUDIT_LOG_ACTION_USER_UPDATED,
       id,
@@ -58,7 +56,7 @@ export class UserService {
   public async delete(id: string, requestId: string) {
     const response = await this.appRepository.softDelete(id);
     if (response === 0) return;
-    await this.auditPublisher.publish(
+    await this.auditClient.recordEvent(
       AuditLogEntityType.AUDIT_LOG_ENTITY_TYPE_USER,
       AuditLogAction.AUDIT_LOG_ACTION_USER_DELETED,
       id,
