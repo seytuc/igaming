@@ -1,4 +1,4 @@
-import { Controller, Get, Query, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { AuditService } from './audit.service';
 import { GrpcMethod } from '@nestjs/microservices';
 import type { EventRecordRequest } from '@app/contracts';
@@ -10,9 +10,7 @@ export class AuditController {
   constructor(private readonly auditServiceService: AuditService) {}
 
   @Get('audit/logs')
-  public findAll(
-    @Query(new ValidationPipe({ transform: true })) dto: FindAuditLogsRequestDto,
-  ) {
+  public findAll(@Query() dto: FindAuditLogsRequestDto) {
     return this.auditServiceService.findAll(dto);
   }
 

@@ -7,12 +7,14 @@ import {
   Transport,
 } from '@nestjs/microservices';
 import { join } from 'path';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(UserModule);
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  const config = app.get(ConfigService);
 
-  await app.listen(3000);
+  await app.listen(config.get('PORT', 3000));
 }
 bootstrap();

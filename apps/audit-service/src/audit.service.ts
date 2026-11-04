@@ -54,7 +54,7 @@ export class AuditService {
     }
     throw new RpcException({
       code: status.INVALID_ARGUMENT,
-      message: 'Unsupported audit entity type',
+      message: 'unsupported type',
     });
   }
 }

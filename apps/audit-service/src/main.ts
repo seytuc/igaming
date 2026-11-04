@@ -1,10 +1,13 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AuditModule } from './audit.module';
 import {join} from 'path'
 import { GrpcOptions, Transport } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AuditModule);
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.connectMicroservice<GrpcOptions>({
     transport: Transport.GRPC,
     options: {
@@ -16,7 +19,9 @@ async function bootstrap() {
       }
     },
   });
+  const config = app.get(ConfigService);
+
   await app.startAllMicroservices()
-  await app.listen(3001);
+  await app.listen(config.get('PORT', 3001));
 }
 bootstrap();
