@@ -1,0 +1,30 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+package audit.v1;
+
+service AuditService {
+  rpc EventRecord(EventRecordRequest) returns (google.protobuf.Empty);
+  rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty);
+}
+
+message EventRecordRequest {
+  string id = 1;
+  AuditLogAction action = 2;
+  AuditLogEntityType entity_type = 3;
+  string entity_id = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+enum AuditLogAction {
+  AUDIT_LOG_ACTION_DEFAULT = 0;
+  AUDIT_LOG_ACTION_USER_CREATED = 1;
+  AUDIT_LOG_ACTION_USER_UPDATED = 2;
+  AUDIT_LOG_ACTION_USER_DELETED = 3;
+}
+
+enum AuditLogEntityType {
+  AUDIT_LOG_ENTITY_TYPE_DEFAULT = 0;
+  AUDIT_LOG_ENTITY_TYPE_USER = 1;
+}
