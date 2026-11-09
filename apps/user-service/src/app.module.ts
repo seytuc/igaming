@@ -6,6 +6,13 @@ import { XApiKeyGuard } from './auth/x-api-key.guard';
 import { HealthModule } from './health/health.module';
 import { User } from './users/models/user.model';
 import { UsersModule } from './users/users.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { IpThrottlerGuard } from './auth/ip-throttler.guard';
+import { OutboxEvent } from './outbox/outbox.model';
+import { OutboxModule } from './outbox/outbox.module';
+
+const RATE_LIMIT_PER_MINUTE = 120;
+const RATE_LIMIT_WINDOW_MS = 60_000;
 
 @Module({
   imports: [
@@ -14,22 +21,29 @@ import { UsersModule } from './users/users.module';
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
         dialect: 'postgres',
-        host: config.getOrThrow<string>('POSTGRES_HOST'),
-        port: config.getOrThrow<number>('POSTGRES_PORT'),
-        username: config.getOrThrow<string>('POSTGRES_USER'),
-        password: config.getOrThrow<string>('POSTGRES_PASSWORD'),
-        database: config.getOrThrow<string>('POSTGRES_DB'),
+        host: config.getOrThrow<string>('USER_DB_HOST'),
+        port: config.getOrThrow<number>('USER_DB_PORT'),
+        username: config.getOrThrow<string>('USER_DB_USER'),
+        password: config.getOrThrow<string>('USER_DB_PASSWORD'),
+        database: config.getOrThrow<string>('USER_DB_NAME'),
         autoLoadModels: false,
         synchronize: false,
         retryAttempts: 3,
         retryDelay: 2000,
-        models: [User],
+        models: [User, OutboxEvent],
       }),
       inject: [ConfigService],
     }),
+    ThrottlerModule.forRoot([
+      { ttl: RATE_LIMIT_WINDOW_MS, limit: RATE_LIMIT_PER_MINUTE },
+    ]),
     UsersModule,
     HealthModule,
+    OutboxModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: XApiKeyGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: XApiKeyGuard },
+    { provide: APP_GUARD, useClass: IpThrottlerGuard },
+  ],
 })
 export class AppModule {}

@@ -13,14 +13,19 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/user-service/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./apps/user-service/test/jest-e2e.json",
     "generate": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./libs/contracts/proto/generate --ts_proto_opt=nestJs=true --ts_proto_opt=stringEnums=true --proto_path=./libs/contracts/proto --ts_proto_opt=esModuleInterop=true --ts_proto_opt=addGrpcMetadata=true --ts_proto_opt=addGrpcMetadata=true ./libs/contracts/proto/*.proto",
-    "empty-migrate": "sequelize-cli migration:generate --migrations-path infra/sequelize/migrations",
-    "push-migrate": "sequelize-cli db:migrate --config infra/sequelize/config/config.json --migrations-path infra/sequelize/migrations"
+    "empty-migrate-audit": "sequelize-cli migration:generate --migrations-path apps/audit-service/infra/sequelize/migrations",
+    "empty-migrate-users": "sequelize-cli migration:generate --migrations-path apps/user-service/infra/sequelize/migrations",
+    "push-migrate-audit": "sequelize-cli db:migrate --config apps/audit-service/infra/sequelize/config/config.js --migrations-path apps/audit-service/infra/sequelize/migrations",
+    "push-migrate-users": "sequelize-cli db:migrate --config apps/user-service/infra/sequelize/config/config.js --migrations-path apps/user-service/infra/sequelize/migrations",
+    "db:create-users": "sequelize-cli db:create --config apps/user-service/infra/sequelize/config/config.js",
+    "db:create-audit": "sequelize-cli db:create --config apps/audit-service/infra/sequelize/config/config.js",
+    "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --runTestsByPath apps/user-service/tests/users.integration.spec.ts"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.14.7",
@@ -34,6 +39,7 @@
     "@nestjs/throttler": "^6.7.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "dotenv": "^18.0.9",
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
@@ -47,6 +53,7 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@testcontainers/postgresql": "^12.2.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
@@ -89,8 +96,9 @@
       "<rootDir>/libs/"
     ],
     "moduleNameMapper": {
-      "^@app/contracts(|/.*)$": "<rootDir>/libs/contracts/src/$1",
-      "^@app/decorators(|/.*)$": "<rootDir>/libs/decorators/src/$1"
+      "^@app/contracts(|/.*)$": "<rootDir>/libs/contracts/index.ts",
+      "^@app/decorators(|/.*)$": "<rootDir>/libs/decorators/index.ts",
+      "^libs/(.*)$": "<rootDir>/libs/$1"
     }
   }
 }

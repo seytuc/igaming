@@ -1,23 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from './models/user.model';
 import { UserCreateRequestDto } from './dto/user-create.request.dto';
 import { FindAllRequestDto } from './dto/find-all.request.dto';
-import { Op, type WhereOperators } from 'sequelize';
+import { Op, Transaction, type WhereOperators } from 'sequelize';
 import { PatchRequestDto } from './dto/update.request.dto';
 
 @Injectable()
 export class UserRepository {
   constructor(@InjectModel(User) private readonly userModel: typeof User) {}
-  public async create(dto: UserCreateRequestDto) {
+  public async create(dto: UserCreateRequestDto, transaction: Transaction) {
     const { email, name } = dto;
-    return this.userModel.create({ email, name });
+    return this.userModel.create({ email, name }, { transaction });
   }
 
-  public findOne(email: string, excludeId?: string) {
+  public findOneByEmail(email: string, excludeId?: string) {
     return this.userModel.findOne({
       where: excludeId ? { email, id: { [Op.ne]: excludeId } } : { email },
       paranoid: false,
+    });
+  }
+  public async findOne(id: string) {
+    return this.userModel.findOne({
+      where: { id },
     });
   }
 
@@ -49,6 +54,12 @@ export class UserRepository {
       where.createdAt ??= {};
       where.createdAt[Op.lt] = new Date(created_to);
     }
+    if (created_from && created_to) {
+      if (new Date(created_to).getTime() < new Date(created_from).getTime())
+        throw new BadRequestException(
+          'created_from must not be later than created_to',
+        );
+    }
 
     const sortByField = sort_by === 'created_at' ? 'createdAt' : sort_by;
     const sortDirField = sort_dir === 'asc' ? 'ASC' : 'DESC';
@@ -69,7 +80,7 @@ export class UserRepository {
     };
   }
 
-  public patch(id: string, dto: PatchRequestDto) {
+  public patch(id: string, dto: PatchRequestDto, transaction: Transaction) {
     const { email, name } = dto;
     const data: {
       name?: string;
@@ -77,10 +88,14 @@ export class UserRepository {
     } = {};
     if (name) data.name = name;
     if (email) data.email = email;
-    return this.userModel.update(data, { where: { id } });
+    return this.userModel.update(data, {
+      where: { id },
+      returning: true,
+      transaction,
+    });
   }
 
-  public softDelete(id: string) {
-    return this.userModel.destroy({ where: { id } });
+  public softDelete(id: string, transaction: Transaction) {
+    return this.userModel.destroy({ where: { id }, transaction });
   }
 }

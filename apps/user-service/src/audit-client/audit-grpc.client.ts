@@ -59,4 +59,12 @@ export class AuditGrpcClient {
       });
     }
   }
+
+  public async sendEvent(event: EventRecordRequest, request_id: string) {
+    const metadata = new Metadata();
+    metadata.set(CORRELATION_ID_METADATA_KEY, request_id);
+    await firstValueFrom(
+      this.auditClient.eventRecord(event, metadata).pipe(timeout(2000)),
+    );
+  }
 }

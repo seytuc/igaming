@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -24,6 +25,11 @@ export class UserController {
     @CorrelationId() requestId: string,
   ) {
     return this.appService.create(dto, requestId);
+  }
+
+  @Get(':id')
+  public async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.appService.findOne(id);
   }
 
   @Get()

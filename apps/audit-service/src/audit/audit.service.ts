@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   AuditLogEntityType,
   CORRELATION_ID_METADATA_KEY,
@@ -10,12 +10,20 @@ import { Metadata, status } from '@grpc/grpc-js';
 import { RpcException } from '@nestjs/microservices';
 import { isUUID } from 'class-validator';
 import type { FindAuditLogsRequestDto } from './dto/find-audit-logs.request.dto';
+import { AuditEntityType } from './enums/audit-entity-type.enum';
 
 @Injectable()
 export class AuditService {
   constructor(private readonly auditRepository: AuditRepository) {}
 
   public findAll(dto: FindAuditLogsRequestDto) {
+    const { timestamp_from, timestamp_to } = dto;
+    if (timestamp_from && timestamp_to) {
+      if (new Date(timestamp_from).getTime() > new Date(timestamp_to).getTime())
+        throw new BadRequestException(
+          'created_from must not be later than created_to',
+        );
+    }
     return this.auditRepository.findAll(dto);
   }
   public async create(dto: EventRecordRequest, metadata: Metadata) {
@@ -25,6 +33,13 @@ export class AuditService {
       throw new RpcException({
         code: status.INVALID_ARGUMENT,
         message: 'x-request-id must be a valid UUID',
+      });
+    }
+
+    if (!isUUID(dto.id)) {
+      throw new RpcException({
+        code: status.INVALID_ARGUMENT,
+        message: 'Event id must be valid uuid',
       });
     }
 
@@ -51,7 +66,7 @@ export class AuditService {
 
   private mapperEntityType(entityType: AuditLogEntityType): number {
     if (entityType === AuditLogEntityType.AUDIT_LOG_ENTITY_TYPE_USER) {
-      return 1;
+      return AuditEntityType.User;
     }
     throw new RpcException({
       code: status.INVALID_ARGUMENT,
