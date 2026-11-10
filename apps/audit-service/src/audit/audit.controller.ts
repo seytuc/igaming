@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { AuditService } from './audit.service';
 import { GrpcMethod, RpcException } from '@nestjs/microservices';
 import {

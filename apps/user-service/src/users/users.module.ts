@@ -8,7 +8,11 @@ import { UserService } from './user.service';
 import { OutboxModule } from '../outbox/outbox.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([User]), AuditClientModule, OutboxModule],
+  imports: [
+    SequelizeModule.forFeature([User]),
+    AuditClientModule,
+    OutboxModule,
+  ],
   controllers: [UserController],
   providers: [UserService, UserRepository],
 })

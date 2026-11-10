@@ -103,7 +103,7 @@ export class UserService {
   public async delete(id: string, requestId: string) {
     await this.sequelize.transaction(async (tx) => {
       const response = await this.appRepository.softDelete(id, tx);
-      if (response === 0) throw new NotFoundException('User not found')
+      if (response === 0) throw new NotFoundException('User not found');
       await this.outboxRepository.enqueue(
         AuditLogEntityType.AUDIT_LOG_ENTITY_TYPE_USER,
         AuditLogAction.AUDIT_LOG_ACTION_USER_DELETED,

@@ -37,7 +37,7 @@ export class HealthController {
 
       return { status: 'ok' };
     } catch {
-      throw new ServiceUnavailableException({ status: 'not_ready' });
+      throw new ServiceUnavailableException({ status: 'not ready' });
     }
   }
 }

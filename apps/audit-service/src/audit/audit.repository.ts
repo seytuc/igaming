@@ -2,6 +2,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { AuditLog } from './models/audit-log.model';
 import { Op, type WhereOperators } from 'sequelize';
 import type { FindAuditLogsRequestDto } from './dto/find-audit-logs.request.dto';
+import { AuditLogAction } from '@app/contracts';
 
 export type AuditLogCreateData = Pick<
   AuditLog,
@@ -16,7 +17,7 @@ export class AuditRepository {
       dto;
     const where: {
       entityType?: number;
-      action?: AuditLog['action'];
+      action?: AuditLogAction;
       timestamp?: WhereOperators<Date>;
     } = {};
 

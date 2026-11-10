@@ -29,7 +29,7 @@ export class UserController {
 
   @Get(':id')
   public async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.appService.findOne(id);
+    return await this.appService.findOne(id);
   }
 
   @Get()
