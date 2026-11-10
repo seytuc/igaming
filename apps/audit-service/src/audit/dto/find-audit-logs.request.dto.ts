@@ -32,10 +32,10 @@ export class FindAuditLogsRequestDto {
   action?: AuditLogAction;
 
   @IsOptional()
-  @IsISO8601()
+  @IsISO8601({ strict: true})
   timestamp_from?: string;
 
   @IsOptional()
-  @IsISO8601()
+  @IsISO8601({ strict: true })
   timestamp_to?: string;
 }

@@ -29,37 +29,6 @@ export class AuditGrpcClient {
     await firstValueFrom(this.auditClient.ping({}).pipe(timeout(500)));
   }
 
-  public async recordEvent(
-    entityType: AuditLogEntityType,
-    action: AuditLogAction,
-    entityId: string,
-    requestId: string,
-  ): Promise<void> {
-    const event: EventRecordRequest = {
-      id: randomUUID(),
-      action,
-      entityType,
-      entityId,
-      timestamp: toProtoTimestamp(),
-    };
-
-    const metadata = new Metadata();
-    metadata.set(CORRELATION_ID_METADATA_KEY, requestId);
-
-    try {
-      await firstValueFrom(
-        this.auditClient.eventRecord(event, metadata).pipe(timeout(2_000)),
-      );
-    } catch {
-      this.logger.error({
-        event: 'audit.delivery_failed',
-        action,
-        eventId: event.id,
-        requestId,
-      });
-    }
-  }
-
   public async sendEvent(event: EventRecordRequest, request_id: string) {
     const metadata = new Metadata();
     metadata.set(CORRELATION_ID_METADATA_KEY, request_id);

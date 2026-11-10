@@ -40,7 +40,7 @@ export class OutboxWorker implements OnApplicationBootstrap, OnModuleDestroy {
       } catch (error) {
         this.logger.error(error);
       }
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      await new Promise((resolve) => setTimeout(resolve, 200));
     }
   }
 

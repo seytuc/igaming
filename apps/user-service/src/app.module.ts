@@ -6,13 +6,13 @@ import { XApiKeyGuard } from './auth/x-api-key.guard';
 import { HealthModule } from './health/health.module';
 import { User } from './users/models/user.model';
 import { UsersModule } from './users/users.module';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import {  ThrottlerModule } from '@nestjs/throttler';
 import { IpThrottlerGuard } from './auth/ip-throttler.guard';
 import { OutboxEvent } from './outbox/outbox.model';
 import { OutboxModule } from './outbox/outbox.module';
 
 const RATE_LIMIT_PER_MINUTE = 120;
-const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_WINDOW_MS = 60000;
 
 @Module({
   imports: [

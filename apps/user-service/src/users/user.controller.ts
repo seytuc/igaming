@@ -39,7 +39,7 @@ export class UserController {
 
   @Patch(':id')
   public async patch(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: PatchRequestDto,
     @CorrelationId() requestId: string,
   ) {
@@ -48,7 +48,7 @@ export class UserController {
 
   @Delete(':id')
   public async delete(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CorrelationId() requestId: string,
   ) {
     return this.appService.delete(id, requestId);

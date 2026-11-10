@@ -19,8 +19,8 @@ import { OutboxRepository } from '../src/outbox/outbox.repository';
 jest.setTimeout(120_000);
 
 describe('Users API', () => {
-  let container: StartedPostgreSqlContainer | undefined;
-  let app: INestApplication | undefined;
+  let container: StartedPostgreSqlContainer;
+  let app: INestApplication;
   let userModel: typeof User;
   let outboxModel: typeof OutboxEvent;
   let outboxRepository: OutboxRepository;
@@ -86,7 +86,6 @@ describe('Users API', () => {
   });
 
   it('POST /users. Сохроняет пользователя и события outbox', async () => {
-    if (!app) throw new Error('Test application is not init');
     const email = `${randomUUID()}@example.com`;
     const requestId = randomUUID();
 
@@ -116,8 +115,45 @@ describe('Users API', () => {
     expect(await outboxModel.count({ where: { requestId } })).toBe(1);
   });
 
+  describe('Валидация POST', () => {
+    it('Пустое тело', async () => {
+      await request(app?.getHttpServer())
+        .post('/users')
+        .set('X-API-KEY', 'test-key')
+        .send({})
+        .expect(400);
+    });
+    it('Только почта', async () => {
+      await request(app?.getHttpServer())
+        .post('/users')
+        .set('X-API-KEY', 'test-key')
+        .send({ email: 'sergey@gmail.com' })
+        .expect(400);
+    });
+    it('Только имя', async () => {
+      await request(app?.getHttpServer())
+        .post('/users')
+        .set('X-API-KEY', 'test-key')
+        .send({ name: 'Anna' })
+        .expect(400);
+    });
+    it('Непраивльная почта', async () => {
+      await request(app?.getHttpServer())
+        .post('/users')
+        .set('X-API-KEY', 'test-key')
+        .send({ name: 'Anna', email: 'anna!gm.ru' })
+        .expect(400);
+    });
+    it('Null', async () => {
+      await request(app?.getHttpServer())
+        .post('/users')
+        .set('X-API-KEY', 'test-key')
+        .send({ name: null, email: null })
+        .expect(400);
+    });
+  });
+
   it('откатываем создание пользователя при ошибке outbox', async () => {
-    if (!app) throw new Error('Test application is not init');
     const email = `${randomUUID()}@example.com`;
     const requestId = randomUUID();
 
@@ -148,13 +184,43 @@ describe('Users API', () => {
   });
 
   it('GET /users/:id возвращает 404 для отсутствующего пользователя', async () => {
-    if (!app) {
-      throw new Error('Test application is not initialized');
-    }
-
     await request(app.getHttpServer())
       .get(`/users/${randomUUID()}`)
       .set('X-API-Key', 'test-key')
       .expect(404);
+  });
+
+  it('PATCH /users/:id', async () => {
+    if (!app) throw new Error('Test application is not init');
+    const requestId = randomUUID();
+    const email = `${randomUUID()}@gmail.com`;
+    await request(app.getHttpServer())
+      .post('/users')
+      .set('X-API-Key', 'test-key')
+      .set('X-Request-Id', requestId)
+      .send({ email, name: 'Oleg' });
+
+    const savedUser = await userModel.findOne({
+      where: { email },
+    });
+    expect(savedUser).not.toBeNull();
+    expect(savedUser?.name).toBe('Oleg');
+    expect(savedUser?.email).toBe(email);
+
+    await request(app.getHttpServer())
+      .patch(`/users/${savedUser?.id}`)
+      .set('X-Request-Id', requestId)
+      .set('X-API-Key', 'test-key')
+      .send({ email: 'new@mail.ru', name: 'Ivan' });
+
+    const patchUser = await userModel.findOne({
+      where: { id: savedUser?.id },
+    });
+    expect(patchUser).not.toBeNull();
+    expect(patchUser?.name).toBe('Ivan');
+    expect(patchUser?.email).toBe('new@mail.ru');
+
+    const countEvents = await outboxModel.count();
+    expect(countEvents).toBe(3);
   });
 });
