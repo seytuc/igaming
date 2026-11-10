@@ -48,7 +48,7 @@ export class AuditGrpcClient {
 
     try {
       await firstValueFrom(
-        this.auditClient.eventRecord(event, metadata).pipe(timeout(2_000)),
+        this.auditClient.eventRecord(event, metadata).pipe(timeout(2000)),
       );
     } catch {
       this.logger.error({
