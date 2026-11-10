@@ -24,17 +24,17 @@ export class AuditLog extends Model<
   declare id: CreationOptional<string>;
 
   @Column({ type: DataType.STRING, allowNull: false })
-  action: AuditLogAction;
+  declare action: AuditLogAction;
 
   @Column({ type: DataType.SMALLINT, allowNull: false })
-  entityType: number;
+  declare entityType: number;
 
   @Column({ type: DataType.STRING, allowNull: false })
-  entityId: string;
+  declare entityId: string;
 
   @Column({ type: DataType.UUID, allowNull: false })
-  requestId: string;
+  declare requestId: string;
 
   @Column({ type: DataType.DATE, allowNull: false })
-  timestamp: Date;
+  declare timestamp: Date;
 }

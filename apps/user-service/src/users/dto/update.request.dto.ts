@@ -1,11 +1,16 @@
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsString, Length, ValidateIf } from 'class-validator';
+import { Trim } from 'libs/decorators';
 
 export class PatchRequestDto {
-  @IsOptional()
+  @ValidateIf((_object, value) => value !== undefined)
+  @Trim()
   @IsEmail()
-  email: string;
+  @Length(1, 120)
+  email?: string;
 
-  @IsOptional()
+  @ValidateIf((_object, value) => value !== undefined)
+  @Trim()
   @IsString()
-  name: string;
+  @Length(1, 120)
+  name?: string;
 }

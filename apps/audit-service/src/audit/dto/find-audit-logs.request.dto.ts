@@ -8,12 +8,12 @@ import {
   Max,
   Min,
 } from 'class-validator';
+import { AuditEntityType } from '../enums/audit-entity-type.enum';
 
 export class FindAuditLogsRequestDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(10)
   page = 1;
 
   @Type(() => Number)
@@ -24,19 +24,18 @@ export class FindAuditLogsRequestDto {
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  entity_type?: number;
+  @IsEnum(AuditEntityType)
+  entity_type?: AuditEntityType;
 
   @IsOptional()
   @IsEnum(AuditLogAction)
   action?: AuditLogAction;
 
   @IsOptional()
-  @IsISO8601()
+  @IsISO8601({ strict: true})
   timestamp_from?: string;
 
   @IsOptional()
-  @IsISO8601()
+  @IsISO8601({ strict: true })
   timestamp_to?: string;
 }

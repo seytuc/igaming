@@ -11,7 +11,6 @@ import { Public } from '../../../../libs/decorators/public.decorator';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { AuditGrpcClient } from '../audit-client/audit-grpc.client';
 
-@UseGuards(ThrottlerGuard)
 @Public()
 @Controller('health')
 export class HealthController {
@@ -38,7 +37,7 @@ export class HealthController {
 
       return { status: 'ok' };
     } catch {
-      throw new ServiceUnavailableException({ status: 'not_ready' });
+      throw new ServiceUnavailableException({ status: 'not ready' });
     }
   }
 }

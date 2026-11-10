@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -26,6 +27,11 @@ export class UserController {
     return this.appService.create(dto, requestId);
   }
 
+  @Get(':id')
+  public async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.appService.findOne(id);
+  }
+
   @Get()
   public async findAll(@Query() dto: FindAllRequestDto) {
     return this.appService.findAll(dto);
@@ -33,7 +39,7 @@ export class UserController {
 
   @Patch(':id')
   public async patch(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: PatchRequestDto,
     @CorrelationId() requestId: string,
   ) {
@@ -42,7 +48,7 @@ export class UserController {
 
   @Delete(':id')
   public async delete(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CorrelationId() requestId: string,
   ) {
     return this.appService.delete(id, requestId);

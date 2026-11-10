@@ -4,6 +4,7 @@ import {
   IsISO8601,
   IsOptional,
   IsString,
+  Max,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -17,6 +18,7 @@ export class FindAllRequestDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
+  @Max(20)
   limit: number = 10;
 
   @IsIn(['name', 'email', 'created_at'])
@@ -34,10 +36,10 @@ export class FindAllRequestDto {
   email?: string;
 
   @IsOptional()
-  @IsISO8601()
+  @IsISO8601({ strict: true })
   created_from?: string;
 
   @IsOptional()
-  @IsISO8601()
+  @IsISO8601({ strict: true })
   created_to?: string;
 }

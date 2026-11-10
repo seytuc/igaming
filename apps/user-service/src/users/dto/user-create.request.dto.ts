@@ -1,8 +1,19 @@
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  Length,
+  MaxLength,
+} from 'class-validator';
+import { Trim } from 'libs/decorators';
 
 export class UserCreateRequestDto {
-  @IsNotEmpty()
+  @Trim()
+  @IsString()
+  @Length(1, 120)
   name: string;
+
+  @Trim()
   @IsEmail()
+  @MaxLength(64)
   email: string;
 }

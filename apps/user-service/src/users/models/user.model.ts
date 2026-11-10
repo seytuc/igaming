@@ -28,10 +28,10 @@ export class User extends Model<
   declare id: CreationOptional<string>;
 
   @Column
-  name: string;
+  declare name: string;
 
   @Column({ unique: true })
-  email: string;
+  declare email: string;
 
   @Column({ field: 'created_at', type: DataType.DATE, allowNull: false })
   declare createdAt: CreationOptional<Date>;

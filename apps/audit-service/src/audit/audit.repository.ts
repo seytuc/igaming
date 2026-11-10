@@ -1,8 +1,8 @@
 import { InjectModel } from '@nestjs/sequelize';
 import { AuditLog } from './models/audit-log.model';
-import { RpcException } from '@nestjs/microservices';
 import { Op, type WhereOperators } from 'sequelize';
 import type { FindAuditLogsRequestDto } from './dto/find-audit-logs.request.dto';
+import { AuditLogAction } from '@app/contracts';
 
 export type AuditLogCreateData = Pick<
   AuditLog,
@@ -17,7 +17,7 @@ export class AuditRepository {
       dto;
     const where: {
       entityType?: number;
-      action?: AuditLog['action'];
+      action?: AuditLogAction;
       timestamp?: WhereOperators<Date>;
     } = {};
 
@@ -49,14 +49,11 @@ export class AuditRepository {
   }
 
   public async create(data: AuditLogCreateData) {
-    const { action, entityId, entityType, timestamp, requestId } = data;
-    if (!timestamp) throw new RpcException('timestamp require');
-    return this.audit.create({
-      action,
-      entityId,
-      entityType,
-      timestamp,
-      requestId,
+    await this.audit.findOrCreate({
+      where: { id: data.id },
+      defaults: data,
     });
+
+    return {};
   }
 }
